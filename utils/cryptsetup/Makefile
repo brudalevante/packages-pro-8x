@@ -24,9 +24,11 @@ PKG_FIXUP:=autoreconf
 PKG_INSTALL:=1
 PKG_BUILD_PARALLEL:=1
 
-PKG_BUILD_DEPENDS:=!USE_GLIBC:argp-standalone
+PKG_BUILD_DEPENDS:=!USE_GLIBC:argp-standalone cryptsetup/host
+HOST_BUILD_DEPENDS:=lvm2/host libjson-c/host popt/host
 
 include $(INCLUDE_DIR)/package.mk
+include $(INCLUDE_DIR)/host-build.mk
 include $(INCLUDE_DIR)/nls.mk
 
 define Package/cryptsetup
@@ -34,7 +36,7 @@ define Package/cryptsetup
   CATEGORY:=Utilities
   SUBMENU:=Encryption
   TITLE:=Cryptsetup
-  DEPENDS:=$(ICONV_DEPENDS) $(INTL_DEPENDS) +libblkid +libuuid +libpopt +lvm2 \
+  DEPENDS:=$(ICONV_DEPENDS) $(INTL_DEPENDS) +libblkid +libuuid +libpopt \
            +libdevmapper +libjson-c +@KERNEL_DIRECT_IO +kmod-crypto-user
   URL:=https://gitlab.com/cryptsetup/cryptsetup/
 endef
@@ -62,11 +64,15 @@ CONFIGURE_ARGS += \
 	--disable-integritysetup \
 	--disable-selinux \
 	--disable-rpath \
-	--disable-veritysetup \
 	--disable-udev \
 	--with-default-luks-format=LUKS2 \
 	--with-luks2-lock-path=/var/run/cryptsetup \
 	--with-crypto_backend=kernel
+
+HOST_CONFIGURE_ARGS += \
+	--disable-asciidoc \
+	--disable-ssh-token \
+	--disable-blkid
 
 ifeq ($(CONFIG_PACKAGE_cryptsetup-ssh),)
 CONFIGURE_ARGS += --disable-ssh-token
@@ -93,6 +99,7 @@ define Package/cryptsetup/install
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libcryptsetup.so* $(1)/usr/lib
 	$(INSTALL_DIR) $(1)/usr/sbin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/cryptsetup $(1)/usr/sbin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/veritysetup $(1)/usr/sbin
 endef
 
 define Package/cryptsetup-ssh/install
@@ -104,3 +111,4 @@ endef
 
 $(eval $(call BuildPackage,cryptsetup))
 $(eval $(call BuildPackage,cryptsetup-ssh))
+$(eval $(call HostBuild))

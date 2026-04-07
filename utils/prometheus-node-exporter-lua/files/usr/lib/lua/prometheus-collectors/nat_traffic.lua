@@ -1,10 +1,10 @@
 local function scrape()
-  -- documentation about nf_conntrack:
+  -- documetation about nf_conntrack:
   -- https://www.frozentux.net/iptables-tutorial/chunkyhtml/x1309.html
 
-  -- two dimensional table to sum bytes for the pair (src/dest)
+  -- two dimesional table to sum bytes for the pair (src/dest)
   local nat = {}
-  -- default constructor to initialize unknown pairs
+  -- default constructor to init unknow pairs
   setmetatable(nat, {
     __index = function (t, addr)
       t[addr] = {}

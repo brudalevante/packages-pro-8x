@@ -17,6 +17,8 @@ PKG_SOURCE:=$(PKG_NAME).$(PKG_VERSION).tgz
 PKG_SOURCE_URL:=https://sourceware.org/pub/lvm2
 PKG_HASH:=4bea6fd2e5af9cdb3e27b48b4efa8d89210d9bfa13df900e092e404720a59b1d
 PKG_BUILD_DIR:=$(BUILD_DIR)/lvm2-$(BUILD_VARIANT)/$(PKG_NAME).$(PKG_VERSION)
+HOST_BUILD_DIR:=$(BUILD_DIR_HOST)/$(PKG_NAME).$(PKG_VERSION)
+HOST_BUILD_DEPENDS:=libaio/host
 
 PKG_MAINTAINER:=Daniel Golle <daniel@makrotopia.org>
 PKG_LICENSE:=GPL-2.0 LGPL-2.1
@@ -26,6 +28,7 @@ PKG_CPE_ID:=cpe:/a:heinz_mauelshagen:lvm2
 PKG_BUILD_PARALLEL:=1
 
 include $(INCLUDE_DIR)/package.mk
+include $(INCLUDE_DIR)/host-build.mk
 
 define Package/libdevmapper/Default
   SECTION:=libs
@@ -58,6 +61,15 @@ define Package/libdevmapper-selinux/description
 $(call Package/libdevmapper/description)
  This variant supports SELinux
 
+endef
+
+define Package/dmsetup
+  SECTION:=utils
+  CATEGORY:=Utilities
+  SUBMENU:=Disc
+  TITLE:=The Linux Kernel Device Mapper userspace setup utility
+  URL:=https://sourceware.org/dm/
+  DEPENDS:=+libdevmapper
 endef
 
 define Package/lvm2/default
@@ -132,6 +144,12 @@ endef
 
 Package/libdevmapper-selinux/install = $(Package/libdevmapper/install)
 
+define Package/dmsetup/install
+	$(INSTALL_DIR) $(1)/sbin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/dmsetup $(1)/sbin
+	ln -sf dmsetup $(1)/sbin/dmstats
+endef
+
 define Package/lvm2/install
 	$(INSTALL_DIR) $(1)/sbin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/lvm $(1)/sbin
@@ -148,7 +166,7 @@ define Package/lvm2/install
 	$(INSTALL_BIN) ./files/lvm2.init $(1)/etc/init.d/lvm2
 	$(INSTALL_DIR) $(1)/etc/hotplug.d/block
 	$(INSTALL_DATA) ./files/lvm2.hotplug $(1)/etc/hotplug.d/block/20-lvm2
-	$(FIND) $(PKG_INSTALL_DIR)/usr/sbin/ -type l -exec $(CP) -a {} $(1)/sbin/ \;
+	$(FIND) $(PKG_INSTALL_DIR)/usr/sbin/ -type l ! -name dmstats -exec $(CP) -a {} $(1)/sbin/ \;
 endef
 
 Package/lvm2-selinux/install = $(Package/lvm2/install)
@@ -159,7 +177,17 @@ endef
 
 Package/lvm2-selinux/conffiles = $(Package/lvm2/conffiles)
 
+define Host/Compile
+	$(call Host/Compile/Default,device-mapper)
+endef
+
+define Host/Install
+	$(call Host/Compile/Default,install_device-mapper)
+endef
+
 $(eval $(call BuildPackage,libdevmapper))
 $(eval $(call BuildPackage,libdevmapper-selinux))
+$(eval $(call BuildPackage,dmsetup))
 $(eval $(call BuildPackage,lvm2))
 $(eval $(call BuildPackage,lvm2-selinux))
+$(eval $(call HostBuild))

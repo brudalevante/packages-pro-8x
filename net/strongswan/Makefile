@@ -261,6 +261,7 @@ $(call Package/strongswan/Default)
   TITLE+= (default)
   DEPENDS:= strongswan \
 	+strongswan-charon \
+	+strongswan-ipsec \
 	+strongswan-mod-aes \
 	+strongswan-mod-attr \
 	+strongswan-mod-connmark \
@@ -538,25 +539,8 @@ define Package/strongswan-ipsec/conffiles
 endef
 
 define Package/strongswan-ipsec/install
-	$(INSTALL_DIR) $(1)/etc/ $(1)/usr/sbin
-	$(INSTALL_CONF) $(PKG_INSTALL_DIR)/etc/ipsec.conf $(1)/etc/
-	echo -e "\ninclude /var/ipsec/ipsec.conf" >> $(1)/etc/ipsec.conf
-	$(INSTALL_CONF) ./files/ipsec.secrets $(1)/etc/
-	echo -e "\ninclude /var/ipsec/ipsec.secrets" >> $(1)/etc/ipsec.secrets
-	$(INSTALL_CONF) ./files/ipsec.user $(1)/etc/
-	$(INSTALL_DIR) $(1)/etc/init.d
-	$(INSTALL_BIN) ./files/ipsec.init $(1)/etc/init.d/ipsec
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/ipsec $(1)/usr/sbin/
-endef
-
-define Package/strongswan-ipsec/postinst
-#!/bin/sh
-
-[ -z "$${IPKG_INSTROOT}" ] || exit 0
-
-opkg list-changed-conffiles | grep -qx /etc/ipsec.conf || {
-	rm -f /etc/ipsec.conf-opkg
-}
+	$(INSTALL_DIR) $(1)/etc/config
+	$(INSTALL_DATA) ./files/ipsec.conf $(1)/etc/config/ipsec
 endef
 
 define Package/strongswan-libnttfft/install

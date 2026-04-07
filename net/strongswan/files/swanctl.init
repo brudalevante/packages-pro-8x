@@ -241,6 +241,7 @@ config_child() {
 	local if_id
 	local rekeytime
 	local rekeybytes
+	local replay_window
 	local lifebytes
 	local rekeypackets
 	local lifepackets
@@ -259,6 +260,7 @@ config_child() {
 	config_get interface "$conf" interface ""
 	config_get hw_offload "$conf" hw_offload ""
 	config_get priority "$conf" priority ""
+	config_get replay_window "$conf" replay_window 32
 	config_get rekeybytes "$conf" rekeybytes ""
 	config_get lifebytes "$conf" lifebytes ""
 	config_get rekeypackets "$conf" rekeypackets ""
@@ -325,7 +327,7 @@ config_child() {
 	esac
 
 	case "$hw_offload" in
-	yes|no|auto|"")
+	yes|no|auto|crypto|packet|"")
 		;;
 	*)
 		fatal "hw_offload value $hw_offload invalid"
@@ -341,6 +343,7 @@ config_child() {
 	[ -n "$remote_subnet" ] && swanctl_xappend4 "remote_ts = $remote_subnet"
 
 	[ -n "$hw_offload" ] && swanctl_xappend4 "hw_offload = $hw_offload"
+	[ -n "$replay_window" ] && swanctl_xappend4 "replay_window = $replay_window"
 	[ $ipcomp -eq 1 ] && swanctl_xappend4 "ipcomp = 1"
 	[ -n "$interface" ] && swanctl_xappend4 "interface = $interface"
 	[ -n "$priority" ] && swanctl_xappend4 "priority = $priority"

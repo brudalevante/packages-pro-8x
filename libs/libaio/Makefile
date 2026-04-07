@@ -25,6 +25,7 @@ PKG_BUILD_FLAGS:=no-mips16 no-lto
 PKG_INSTALL:=1
 
 include $(INCLUDE_DIR)/package.mk
+include $(INCLUDE_DIR)/host-build.mk
 
 define Package/libaio
   SECTION:=libs
@@ -32,6 +33,10 @@ define Package/libaio
   TITLE:=Linux kernel AIO interface access library
   URL:=http://lse.sourceforge.net/io/aio.html
 endef
+
+HOST_MAKE_FLAGS += \
+	DESTDIR=$(STAGING_DIR_HOSTPKG) \
+	prefix=""
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/usr/include
@@ -46,3 +51,4 @@ define Package/libaio/install
 endef
 
 $(eval $(call BuildPackage,libaio))
+$(eval $(call HostBuild))
